@@ -1,6 +1,6 @@
-// CHANGE THIS URL to your own running ASP.NET Core API endpoint.
-// Example: https://localhost:7123/api/musicrecords
-const baseUri = "https://localhost:PORT/api/musicrecords";
+// Replace 7123 with the HTTPS port used by your ASP.NET Core API.
+// Example endpoint: https://localhost:7123/api/musicrecords
+const baseUri = "https://localhost:7123/api/musicrecords";
 
 Vue.createApp({
     data() {
@@ -13,52 +13,54 @@ Vue.createApp({
         };
     },
 
+    // Like your teacher's example: load data when Vue is created.
     created() {
-        // Automatically runs when Vue creates the component.
-        console.log("created method called");
         this.getRecords(baseUri);
     },
 
     methods: {
-        // Reusable GET request, based on the teacher's getPosts(uri).
+        // Reusable GET request (same idea as your teacher's getPosts(uri)).
         async getRecords(uri) {
             this.loading = true;
+            this.error = null;
+
             try {
                 const response = await axios.get(uri);
+                if (!Array.isArray(response.data)) {
+                    throw new Error("The API did not return a list of records.");
+                }
                 this.records = response.data;
-                this.error = null;
             } catch (ex) {
                 this.records = [];
-                this.error = ex.message;
+                this.error = ex.response
+                    ? `The API returned status ${ex.response.status}. Check the API endpoint.`
+                    : `${ex.message}. Check your API URL, connection, and CORS settings.`;
             } finally {
                 this.loading = false;
             }
         },
 
+        // Same functionality as your teacher's cleanList().
         cleanList() {
             this.records = [];
             this.error = null;
         },
 
-        // Similar to the teacher's getByUserId(uid), but searches music records.
-        // The API must support optional ?title=... and ?artist=... parameters.
+        // Like getByUserId(), but filtering by title and/or artist.
         searchRecords() {
             const title = this.searchTitle.trim();
             const artist = this.searchArtist.trim();
 
-            if (title === "" && artist === "") {
-                this.error = "Enter a title or artist before searching.";
-                this.records = [];
+            if (!title && !artist) {
+                this.showAll();
                 return;
             }
 
             const params = new URLSearchParams();
-            if (title !== "") params.append("title", title);
-            if (artist !== "") params.append("artist", artist);
+            if (title) params.append("title", title);
+            if (artist) params.append("artist", artist);
 
-            const uri = baseUri + "?" + params.toString();
-            console.log("searchRecords: " + uri);
-            this.getRecords(uri);
+            this.getRecords(baseUri + "?" + params.toString());
         },
 
         showAll() {
