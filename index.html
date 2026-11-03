@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR Music Records | Archive</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app" v-cloak>
+        <header class="site-header">
+            <div class="container header-inner">
+                <a class="brand" href="#" @click.prevent="showAll">
+                    <span class="brand-mark">DR</span>
+                    <span class="brand-text">Music Archive <small>Records collection</small></span>
+                </a>
+                <span class="header-tag">Record management</span>
+            </div>
+        </header>
+
+        <main class="container page-main">
+            <section class="hero" aria-labelledby="page-title">
+                <div class="hero-copy">
+                    <span class="eyebrow">COLLECTION / OVERVIEW</span>
+                    <h1 id="page-title">Every record, <em>one place.</em></h1>
+                    <p>Explore and search the DR music collection. Browse by title or artist using our music records API.</p>
+                </div>
+                <div class="hero-decoration" aria-hidden="true">
+                    <div class="record-disc"><div class="record-label"><span>DR</span></div></div>
+                </div>
+            </section>
+
+            <section class="panel search-panel" aria-labelledby="search-heading">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">FIND A RECORD</span>
+                        <h2 id="search-heading">Search the collection</h2>
+                    </div>
+                    <span class="hint">Search by title, artist, or both</span>
+                </div>
+
+                <form @submit.prevent="searchRecords" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="searchTitle" class="form-label">Record title</label>
+                        <input id="searchTitle" v-model.trim="searchTitle" type="text" class="form-control" placeholder="e.g. Thriller" autocomplete="off">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="searchArtist" class="form-label">Artist</label>
+                        <input id="searchArtist" v-model.trim="searchArtist" type="text" class="form-control" placeholder="e.g. Michael Jackson" autocomplete="off">
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-primary" :disabled="loading">Search</button>
+                    </div>
+                </form>
+                <div class="search-actions">
+                    <button type="button" class="btn btn-link" @click="showAll" :disabled="loading">Show all records</button>
+                    <button type="button" class="btn btn-link secondary-action" @click="cleanList">Clear list</button>
+                </div>
+            </section>
+
+            <section class="panel records-panel" aria-labelledby="records-heading">
+                <div class="section-heading records-title-row">
+                    <div>
+                        <span class="section-kicker">YOUR LIBRARY</span>
+                        <h2 id="records-heading">Music records</h2>
+                    </div>
+                    <span class="count-pill">{{ records.length }} records</span>
+                </div>
+
+                <div v-if="loading" class="state-block" role="status">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Loading records…
+                </div>
+
+                <div v-else-if="error" class="alert alert-danger" role="alert">
+                    <strong>Could not load records.</strong> {{ error }}
+                    <div class="error-tip">Check that your REST API is running and the URL in <code>js/app.js</code> is correct.</div>
+                </div>
+
+                <div v-else-if="records.length === 0" class="state-block" role="status">
+                    <span class="empty-icon" aria-hidden="true">♫</span>
+                    <strong>No records to display</strong>
+                    <span>Try another search or choose “Show all records”.</span>
+                </div>
+
+                <div v-else class="table-responsive">
+                    <table class="table music-table" id="records">
+                        <thead>
+                            <tr>
+                                <th scope="col">TITLE</th>
+                                <th scope="col">ARTIST</th>
+                                <th scope="col">DURATION</th>
+                                <th scope="col">YEAR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="record in records" :key="record.id">
+                                <td class="record-title">{{ record.title }}</td>
+                                <td>{{ record.artist }}</td>
+                                <td>{{ record.duration }} sec</td>
+                                <td>{{ record.publicationYear }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="page-footer">DR MUSIC ARCHIVE <span>Student project · REST API + Vue.js</span></footer>
+        </main>
+    </div>
+
+    <!-- Vue 3, Axios and Bootstrap are loaded from CDNs. An internet connection is needed. -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
