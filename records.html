@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR Music Collection</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Hide Vue expressions until Vue has loaded, even if the CSS file fails. -->
+    <style>[v-cloak] { display: none !important; }</style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-content">
+            <a class="brand" href="./records.html">
+                <span class="brand-symbol">DR</span>
+                <span>Music Collection</span>
+            </a>
+            <span class="topbar-label">RECORD ARCHIVE</span>
+        </div>
+    </header>
+
+    <div id="startup-error" class="container startup-error" role="alert" hidden>
+        The page could not start Vue. Check your internet connection, the browser console (F12),
+        and that <code>index.js</code> is in the correct folder.
+    </div>
+
+    <main id="app" class="container" v-cloak>
+
+        <div v-if="checkingSession" class="message" role="status">Kontrollerer dit login…</div>
+        <div v-else-if="loginError" class="message error" role="alert">
+            <span>{{ loginError }}</span>
+            <button type="button" class="text-button" @click="restoreLogin">Prøv igen</button>
+            <button type="button" class="text-button" @click="logout">Tilbage til login</button>
+        </div>
+        <template v-if="currentUser">
+            <div class="collection-header" style="padding-top: 24px; padding-bottom: 0;">
+                <span>Logget ind som <strong>{{ currentUser.username }}</strong></span>
+                <button id="logout-button" type="button" class="text-button" @click="logout">Log ud</button>
+            </div>
+        <section class="intro" aria-labelledby="page-heading">
+            <span class="eyebrow">COLLECTION OVERVIEW</span>
+            <h1 id="page-heading">Your music library.</h1>
+            <p>Browse and search records from the DR music collection.</p>
+        </section>
+
+        <section class="search-section" aria-labelledby="search-heading">
+            <div class="section-heading">
+                <h2 id="search-heading">Find a record</h2>
+                <p>Search by title, artist, or both.</p>
+            </div>
+
+            <form class="search-form" @submit.prevent="searchRecords">
+                <div class="field">
+                    <label for="record-title">Title</label>
+                    <input
+                        id="record-title"
+                        type="search"
+                        v-model.trim="searchTitle"
+                        placeholder="e.g. Thriller"
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="field">
+                    <label for="record-artist">Artist</label>
+                    <input
+                        id="record-artist"
+                        type="search"
+                        v-model.trim="searchArtist"
+                        placeholder="e.g. Michael Jackson"
+                        autocomplete="off"
+                    >
+                </div>
+                <button class="primary-button" type="submit" :disabled="loading">
+                    {{ loading ? 'Searching…' : 'Search records' }}
+                </button>
+            </form>
+
+            <div class="secondary-actions">
+                <button type="button" class="text-button" @click="showAll" :disabled="loading">
+                    Show all records
+                </button>
+                <button type="button" class="text-button muted" @click="cleanList" :disabled="loading">
+                    Clear list
+                </button>
+            </div>
+        </section>
+
+        <section class="collection-section" aria-labelledby="collection-heading">
+            <div class="collection-header">
+                <div>
+                    <span class="eyebrow">THE ARCHIVE</span>
+                    <h2 id="collection-heading">Music records</h2>
+                </div>
+                <span class="result-count" aria-live="polite">
+                    {{ loading ? 'Loading…' : records.length + ' records' }}
+                </span>
+            </div>
+
+            <div v-if="loading" class="message" role="status">
+                Loading records…
+            </div>
+
+            <div v-else-if="error" class="message error" role="alert">
+                <strong>Unable to load records.</strong>
+                <span>{{ error }}</span>
+                <button type="button" class="text-button" @click="showAll">Try again</button>
+            </div>
+
+            <div v-else-if="records.length === 0" class="message empty" role="status">
+                <strong>No records to display.</strong>
+                <span>Try a different search or select “Show all records”.</span>
+            </div>
+
+            <div v-else class="table-scroll">
+                <table id="records" class="records-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col">Year</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="record in records" :key="record.id">
+                            <td class="title-cell">{{ record.title }}</td>
+                            <td>{{ record.artist }}</td>
+                            <td>{{ record.duration }} sec</td>
+                            <td>{{ record.publicationYear }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        </template>
+    </main>
+
+    <footer class="site-footer container">DR Music Collection <span>Student project · REST API + Vue.js</span></footer>
+
+    <!-- Place scripts at the end so HTML loads before the Vue app starts. -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="config.js"></script>
+    <script src="index.js"></script>
+    <script>
+        if (document.querySelector('#app[v-cloak]')) {
+            document.getElementById('startup-error').hidden = false;
+        }
+    </script>
+</body>
+</html>
+

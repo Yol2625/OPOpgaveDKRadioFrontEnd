@@ -1,0 +1,7 @@
+body { background: #f8faf9; color: #20323a; }
+.login-header { background: #172a33; }
+.dr-mark { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #fff; color: #172a33; font-weight: 900; letter-spacing: -.075em; }
+.eyebrow { color: #176e62; font-size: .75rem; font-weight: 800; letter-spacing: .15em; }
+.display-4 { letter-spacing: -.045em; }
+.btn-primary { --bs-btn-bg: #176e62; --bs-btn-border-color: #176e62; --bs-btn-hover-bg: #0e5148; --bs-btn-hover-border-color: #0e5148; --bs-btn-active-bg: #0e5148; --bs-btn-active-border-color: #0e5148; --bs-btn-disabled-bg: #176e62; --bs-btn-disabled-border-color: #176e62; --bs-btn-focus-shadow-rgb: 23, 110, 98; }
+.form-control:focus { border-color: #176e62; box-shadow: 0 0 0 .25rem rgba(23, 110, 98, .16); }

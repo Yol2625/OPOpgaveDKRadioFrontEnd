@@ -1,135 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DR Music Collection</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Hide Vue expressions until Vue has loaded, even if the CSS file fails. -->
+    <title>Log ind · DR Musikarkiv</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="login.css">
     <style>[v-cloak] { display: none !important; }</style>
 </head>
-<body>
-    <header class="topbar">
-        <div class="container topbar-content">
-            <a class="brand" href="./index.html">
-                <span class="brand-symbol">DR</span>
-                <span>Music Collection</span>
+<body class="d-flex flex-column min-vh-100">
+    <header class="login-header py-3">
+        <nav class="container" aria-label="Hovednavigation">
+            <a class="d-inline-flex align-items-center gap-3 text-white text-decoration-none" href="index.html">
+                <span class="dr-mark">DR</span>
+                <span class="fw-semibold">Musikarkiv</span>
             </a>
-            <span class="topbar-label">RECORD ARCHIVE</span>
-        </div>
+        </nav>
     </header>
 
-    <div id="startup-error" class="container startup-error" role="alert" hidden>
-        The page could not start Vue. Check your internet connection, the browser console (F12),
-        and that <code>js/app.js</code> is in the correct folder.
+    <div id="startup-error" class="container mt-4" role="alert" hidden>
+        <div class="alert alert-danger">Siden kunne ikke starte. Kontrollér din internetforbindelse, og genindlæs siden.</div>
     </div>
+    <noscript><p class="container mt-4">Slå JavaScript til for at logge ind.</p></noscript>
 
-    <main id="app" class="container" v-cloak>
-        <section class="intro" aria-labelledby="page-heading">
-            <span class="eyebrow">COLLECTION OVERVIEW</span>
-            <h1 id="page-heading">Your music library.</h1>
-            <p>Browse and search records from the DR music collection.</p>
-        </section>
+    <main id="login-app" class="container flex-grow-1 d-flex align-items-center py-5" v-cloak>
+        <div class="row align-items-center g-5 w-100 mx-0">
+            <section class="col-lg-6 px-0 pe-lg-5" aria-labelledby="welcome-heading">
+                <p class="eyebrow mb-3">DR MUSIKARKIV</p>
+                <h1 id="welcome-heading" class="display-4 fw-bold mb-4">Musikken samlet.<br>Overblikket lige her.</h1>
+                <p class="lead text-secondary mb-4">Find plader, søg efter kunstnere, og gå på opdagelse i samlingen.</p>
+                <p class="text-secondary mb-0">Log ind med din bruger for at få adgang til musikarkivet.</p>
+            </section>
 
-        <section class="search-section" aria-labelledby="search-heading">
-            <div class="section-heading">
-                <h2 id="search-heading">Find a record</h2>
-                <p>Search by title, artist, or both.</p>
-            </div>
+            <section class="col-lg-5 offset-lg-1 px-0" aria-labelledby="login-heading">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-sm-5">
+                        <h2 id="login-heading" class="h3 fw-bold mb-2">Velkommen tilbage</h2>
+                        <p class="text-secondary mb-4">Log ind for at åbne din musiksamling.</p>
 
-            <form class="search-form" @submit.prevent="searchRecords">
-                <div class="field">
-                    <label for="record-title">Title</label>
-                    <input
-                        id="record-title"
-                        type="search"
-                        v-model.trim="searchTitle"
-                        placeholder="e.g. Thriller"
-                        autocomplete="off"
-                    >
+                        <div v-if="checkingSession" class="alert alert-info" role="status">Kontrollerer dit login…</div>
+                        <div v-if="loginError" id="login-error" class="alert alert-danger" role="alert">{{ loginError }}</div>
+
+                        <form @submit.prevent="login" :aria-busy="loggingIn || checkingSession">
+                            <fieldset :disabled="loggingIn || checkingSession">
+                                <div class="mb-3">
+                                    <label for="login-username" class="form-label fw-semibold">Brugernavn</label>
+                                    <input id="login-username" class="form-control form-control-lg" v-model.trim="loginUsername" type="text" autocomplete="username" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="login-password" class="form-label fw-semibold">Adgangskode</label>
+                                    <input id="login-password" class="form-control form-control-lg" v-model="loginPassword" type="password" autocomplete="current-password" required>
+                                </div>
+                                <button id="login-submit" class="btn btn-primary btn-lg w-100" type="submit">
+                                    <span v-if="loggingIn" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                    {{ loggingIn ? 'Logger ind…' : 'Log ind' }}
+                                </button>
+                            </fieldset>
+                        </form>
+                        <p class="small text-secondary mt-4 mb-0">Adgang kræver en godkendt bruger.</p>
+                    </div>
                 </div>
-                <div class="field">
-                    <label for="record-artist">Artist</label>
-                    <input
-                        id="record-artist"
-                        type="search"
-                        v-model.trim="searchArtist"
-                        placeholder="e.g. Michael Jackson"
-                        autocomplete="off"
-                    >
-                </div>
-                <button class="primary-button" type="submit" :disabled="loading">
-                    {{ loading ? 'Searching…' : 'Search records' }}
-                </button>
-            </form>
-
-            <div class="secondary-actions">
-                <button type="button" class="text-button" @click="showAll" :disabled="loading">
-                    Show all records
-                </button>
-                <button type="button" class="text-button muted" @click="cleanList" :disabled="loading">
-                    Clear list
-                </button>
-            </div>
-        </section>
-
-        <section class="collection-section" aria-labelledby="collection-heading">
-            <div class="collection-header">
-                <div>
-                    <span class="eyebrow">THE ARCHIVE</span>
-                    <h2 id="collection-heading">Music records</h2>
-                </div>
-                <span class="result-count" aria-live="polite">
-                    {{ loading ? 'Loading…' : records.length + ' records' }}
-                </span>
-            </div>
-
-            <div v-if="loading" class="message" role="status">
-                Loading records…
-            </div>
-
-            <div v-else-if="error" class="message error" role="alert">
-                <strong>Unable to load records.</strong>
-                <span>{{ error }}</span>
-                <button type="button" class="text-button" @click="showAll">Try again</button>
-            </div>
-
-            <div v-else-if="records.length === 0" class="message empty" role="status">
-                <strong>No records to display.</strong>
-                <span>Try a different search or select “Show all records”.</span>
-            </div>
-
-            <div v-else class="table-scroll">
-                <table id="records" class="records-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Title</th>
-                            <th scope="col">Artist</th>
-                            <th scope="col">Duration</th>
-                            <th scope="col">Year</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="record in records" :key="record.id">
-                            <td class="title-cell">{{ record.title }}</td>
-                            <td>{{ record.artist }}</td>
-                            <td>{{ record.duration }} sec</td>
-                            <td>{{ record.publicationYear }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            </section>
+        </div>
     </main>
 
-    <footer class="site-footer container">DR Music Collection <span>Student project · REST API + Vue.js</span></footer>
-
-    <!-- Place scripts at the end so HTML loads before the Vue app starts. -->
+    <footer class="container py-4 border-top small text-secondary">DR Musikarkiv · Studieprojekt</footer>
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="index.js"></script>
+    <script src="config.js"></script>
+    <script src="login.js"></script>
     <script>
-        if (document.querySelector('#app[v-cloak]')) {
+        if (document.querySelector('#login-app[v-cloak]')) {
             document.getElementById('startup-error').hidden = false;
         }
     </script>
